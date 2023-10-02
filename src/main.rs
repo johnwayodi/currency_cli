@@ -48,18 +48,25 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     } else {
         // Default behavior
-        println!("Enter a country code (e.g., 'KES' for Kenyan Shilling):");
-        let mut country_code = String::new();
-        io::stdin().read_line(&mut country_code)?;
-        let country_code = country_code.trim().to_uppercase();
+        println!("Enter country codes separated by commas (e.g., 'KES,UGX' for Kenyan Shilling and Ugandan Shilling):");
+        let mut input = String::new();
+        io::stdin().read_line(&mut input)?;
+        let country_codes: Vec<String> = input
+            .trim()
+            .split(',')
+            .map(|s| s.trim().to_uppercase())
+            .collect();
 
         let response: ApiResponse = reqwest::blocking::get(BASE_URL)?.json()?;
-        match response.rates.get(&country_code) {
-            Some(rate) => {
-                println!("1 USD = {} {}", rate, country_code);
-            }
-            None => {
-                println!("Couldn't find exchange rate for {}", country_code);
+
+        for country_code in country_codes {
+            match response.rates.get(&country_code) {
+                Some(rate) => {
+                    println!("1 USD = {} {}", rate, country_code);
+                }
+                None => {
+                    println!("Couldn't find exchange rate for {}", country_code);
+                }
             }
         }
     }
